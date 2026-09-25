@@ -57,8 +57,16 @@ if [[ "${RETH_PRUNING_ARGS+x}" = x ]]; then
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS $RETH_PRUNING_ARGS"
 fi
 
-if [[ "$RETH_HISTORICAL_PROOFS" == "true" && -n "$RETH_HISTORICAL_PROOFS_STORAGE_PATH" ]]; then
+if [[ "$RETH_HISTORICAL_PROOFS" == "true" ]]; then
+    if [[ -z "$RETH_HISTORICAL_PROOFS_STORAGE_PATH" ]]; then
+        # Same layout the proofs snapshot extracts to.
+        RETH_HISTORICAL_PROOFS_STORAGE_PATH="$RETH_DATA_DIR/proofs"
+        echo "RETH_HISTORICAL_PROOFS_STORAGE_PATH not set, using $RETH_HISTORICAL_PROOFS_STORAGE_PATH"
+    fi
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS --proofs-history --proofs-history.storage-path=$RETH_HISTORICAL_PROOFS_STORAGE_PATH"
+    if [[ -n "${RETH_PROOFS_HISTORY_WINDOW:-}" ]]; then
+        ADDITIONAL_ARGS="$ADDITIONAL_ARGS --proofs-history.window=$RETH_PROOFS_HISTORY_WINDOW"
+    fi
 
     # in this case, we need to run the init script first (idempotent)
     "$BINARY" proofs init \
